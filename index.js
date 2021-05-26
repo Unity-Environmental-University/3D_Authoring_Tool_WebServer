@@ -6,8 +6,8 @@ const https = require('https');
 const fs    = require("fs");
 
 
-var express        = require('express');
-var ParseServer    = require('parse-server').ParseServer;
+var express        = require('express');                                        //Web development frameework for node and javascript applications
+var ParseServer    = require('parse-server').ParseServer;                       //Parse Server itself
 var ParseDashboard = require('parse-dashboard');
 var path           = require('path');
 var nodemailer     = require('nodemailer');
@@ -17,32 +17,34 @@ var nodemailer     = require('nodemailer');
 require('dotenv').config();
 
 
-
+//Configurations for the parse server named api - In production it's important to put these away securely, below it is secured by not having hardcoded information
 var api = new ParseServer
 ({
-    databaseURI: process.env.DATABASE_URI,
-    cloud:       __dirname + '/cloud/main.js',
-    appId:       process.env.APP_ID,
-    masterKey:   process.env.MASTER_KEY,
-    serverURL:   process.env.SERVER_URL,
-    appName:     process.env.APP_NAME
+    databaseURI: process.env.DATABASE_URI,                                      //where the database is located
+    cloud:       __dirname + '/cloud/main.js',                                  //where the cloud code file is located
+    appId:       process.env.APP_ID,                                            //App ID
+    masterKey:   process.env.MASTER_KEY,                                        //Master key of current app
+    serverURL:   process.env.SERVER_URL,                                        //Server URL example of default: http://localhost:1337/parse
+    appName:     process.env.APP_NAME                                           //App Name
 })
 
+//Parse dashboard is a spreadsheet like interface for editing rows, representing relationships, and performing GrapqhQL / REST queries.
 var dashboard = new ParseDashboard
 ({
   apps: 
   [
     {
-      appId:     process.env.APP_ID,
-      masterKey: process.env.MASTER_KEY,
-      serverURL: process.env.SERVER_URL,
-      appName:   process.env.APP_NAME,
+      appId:     process.env.APP_ID,                                            //App ID
+      masterKey: process.env.MASTER_KEY,                                        //Master key
+      serverURL: process.env.SERVER_URL,                                        //If your Parse Server’s endpoint is not at /parse, you need to replace /parse with the correct endpoint
+      appName:   process.env.APP_NAME,                                          //App Name
     },
   ],
 
   users: 
   [
     {
+      // Used to log in to your Parse Dashboard
       user: 'ScrutinyAdmin001',                                             // process.env.USERNAME || 'test',
       pass: '$2y$12$9Ut7yIlbT1WNMVrruBC0m.6Bgq8gkmZak8SE7pKrbQbTk1gzNkbVu'  // process.env.PASSWORD || 'test'
     }
@@ -51,6 +53,7 @@ var dashboard = new ParseDashboard
   "useEncryptedPasswords": true
 });
 
+//SMTP is the main transport in Nodemailer for delivering messages
 var transporter = nodemailer.createTransport
 ({
   service: 'gmail',
@@ -104,6 +107,7 @@ app.get('/bonjour', (req, res) =>
 
 var EngineRequests = require("./EngineRequests");
 
+//ExpressJS Routing
 app.post('/feedback'    , EngineRequests.Handle_Feedback    (req, res));
 app.post('/modelrequest', EngineRequests.Handle_ModelRequest(req, res));
 app.post('/login'       , EngineRequests.Handle_Login       (req, res));
