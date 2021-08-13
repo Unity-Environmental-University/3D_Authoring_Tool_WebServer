@@ -7,7 +7,6 @@ var ParseServer = require('parse-server').ParseServer;
 var ParseDashboard = require('parse-dashboard');
 var path = require('path');
 var nodemailer = require('nodemailer');
-var router = express.Router();
 
 require('dotenv').config();
 
@@ -47,7 +46,7 @@ var transporter = nodemailer.createTransport({
 });
 
 var app = express();
-//app.enable('trust proxy');
+157.230.87.45//app.enable('trust proxy');
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
@@ -56,15 +55,14 @@ app.use(function(req, res, next) {
 });
 
 // make the Parse Dashboard available at /
-var dashboardPath = process.env.PARSEDASHBOARD_PATH;
-app.use(dashboardPath, dashboard);
+app.use('/devdashboard', dashboard);
 
 var mountPath = process.env.PARSE_MOUNT;
 app.use(mountPath, api);
 
-router.use('/', express.static(path.join(__dirname, '/public')));
+app.use('/', express.static(path.join(__dirname, '/public')));
 
-router.get('/bonjour', function(req,res){
+app.get('/bonjour', function(req,res){
   console.log("[200] " + req.method + " to " + req.url);
   res.statusCode = 200
   try{
@@ -75,7 +73,7 @@ router.get('/bonjour', function(req,res){
   }
 });
 
-router.post('/feedback', function(req,res){
+app.post('/feedback', function(req,res){
   console.log("[200] " + req.method + " to " + req.url);
   res.statusCode = 200
 
@@ -112,7 +110,7 @@ router.post('/feedback', function(req,res){
     });
 });
 
-router.post('/modelrequest', function(req,res){
+app.post('/modelrequest', function(req,res){
   console.log("[200] " + req.method + " to " + req.url);
   res.statusCode = 200
 
@@ -152,7 +150,7 @@ router.post('/modelrequest', function(req,res){
 });
 
 //Request
-router.post('/login', function(req,res){
+app.post('/login', function(req,res){
   console.log("[200] " + req.method + " to " + req.url);
   res.statusCode = 200
 
@@ -182,63 +180,7 @@ router.post('/login', function(req,res){
   });
 });
 
-router.post('/createUser', function(request, response)
-{
-	console.log("[200] " + request.method + " to " + request.url);
-	response.statusCode = 200
-
-	var body = "";
-
-	request
-	.on('data', function(chunk)
-	{
-		body += chunk;
-	})
-	.on('end', async function()
-	{
-		try
-		{
-			let newUser = JSON.parse(body);
-
-			console.log("Username: " + newUser.Username);
-			console.log("Email: "    + newUser.Email);
-			console.log("Password: " + newUser.Password);
-
-			const parseUser = new Parse.User();
-
-			parseUser.set("username", newUser.Username);
-			parseUser.set("email"   , newUser.Email);
-			parseUser.set("password", newUser.Password);
-
-			await parseUser.signUp();
-
-			console.log("parseUser.signUp() awaited.");
-
-			const user = await Parse.User.logIn(newUser.Username, newUser.Password);
-
-			console.log('User created successful with name: ' + 
-				  parseUser.get("username") + ' and email: ' + 
-				  parseUser.get("email"));
-
-			const userFrame = 
-			{
-				Id: parseUser.id,
-				Username: parseUser.get("username"),
-				Email: parseUser.get("email")
-			};
-
-			response.send(userFrame);
-		} 
-		catch (e) 
-		{ 
-			console.log(error);
-
-			response.send(e); 
-		}
-	});
-});
-
-router.post('/loadscene', function(req,res){
+app.post('/loadscene', function(req,res){
   console.log("[200] " + req.method + " to " + req.url);
   res.statusCode = 200
 
@@ -261,7 +203,7 @@ router.post('/loadscene', function(req,res){
   });
 });
 
-router.post('/loadscenes', function(req,res){
+app.post('/loadscenes', function(req,res){
   console.log("[200] " + req.method + " to " + req.url);
   res.statusCode = 200
 
@@ -286,7 +228,7 @@ router.post('/loadscenes', function(req,res){
   });
 });
 
-router.post('/savescene', function(req,res){
+app.post('/savescene', function(req,res){
   console.log("[200] " + req.method + " to " + req.url);
   res.statusCode = 200
 
@@ -310,7 +252,7 @@ router.post('/savescene', function(req,res){
   });
 });
 
-router.post('/deletescene', function(req,res){
+app.post('/deletescene', function(req,res){
   console.log("[200] " + req.method + " to " + req.url);
   res.statusCode = 200
 
@@ -336,12 +278,6 @@ router.post('/deletescene', function(req,res){
 
 
 var port = process.env.PORT;
-
-if(process.env.DEV_SERVER === "true")
-  app.use('/dev', router);
-else
-  app.use('/', router);
-
 /*
 var options = {
     key: fs.readFileSync('./keys/privkey.pem'),

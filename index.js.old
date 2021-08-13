@@ -190,7 +190,7 @@ router.post('/createUser', function(request, response)
 	var body = "";
 
 	request
-	.on('data', function(chunk)
+	.on('data', function(chunck)
 	{
 		body += chunk;
 	})
@@ -200,41 +200,46 @@ router.post('/createUser', function(request, response)
 		{
 			let newUser = JSON.parse(body);
 
-			console.log("Username: " + newUser.Username);
-			console.log("Email: "    + newUser.Email);
-			console.log("Password: " + newUser.Password);
+			console.log(newUser.id);
 
 			const parseUser = new Parse.User();
 
 			parseUser.set("username", newUser.Username);
-			parseUser.set("email"   , newUser.Email);
+			parseUser.set("email"   , newUser.email);
 			parseUser.set("password", newUser.Password);
 
 			await parseUser.signUp();
 
-			console.log("parseUser.signUp() awaited.");
-
-			const user = await Parse.User.logIn(newUser.Username, newUser.Password);
-
-			console.log('User created successful with name: ' + 
-				  parseUser.get("username") + ' and email: ' + 
-				  parseUser.get("email"));
-
-			const userFrame = 
+			parseUser.logIn(username, pwd)
+            .then(function(user) 
 			{
-				Id: parseUser.id,
-				Username: parseUser.get("username"),
-				Email: parseUser.get("email")
-			};
+				console.log('User created successful with name: ' + 
+					  parseUser.get("username") + ' and email: ' + 
+					  parseUser.get("email"));
 
-			response.send(userFrame);
+				const userFrame = 
+				{
+					Id: parseUser.id,
+					Username: parseUser.get("username"),
+					Email: parseUser.get("email")
+				};
+
+				response.send(userFrame);
+			})
+			.catch( function(error)
+			{
+				console.log("Error: " + error.code + " " + error.message); 
+				response.send("invalid");
+			});
 		} 
 		catch (e) 
 		{ 
-			console.log(error);
-
-			response.send(e); 
+			response.send("timeout"); 
 		}
+	})
+	.catch ( function(error) 
+	{
+		response.send(false)
 	});
 });
 
